@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import blackjack.message.MessageFactory;
+
 public class Client implements Runnable {
 
     protected static String server_IP = "137.190.250.174";
@@ -18,6 +20,7 @@ public class Client implements Runnable {
     private static int initialize(Socket socket) throws IOException {
 	System.out.println("hello");
 	OutputStream os = socket.getOutputStream();
+	MessageFactory.getLoginMessage("MichaelC75");
 	BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	PrintWriter pw = new PrintWriter(os, true);
 

@@ -19,10 +19,16 @@ public class Client implements Runnable {
 
     private static int initialize(Socket socket) throws IOException {
 	System.out.println("hello");
-	OutputStream os = socket.getOutputStream();
-	MessageFactory.getLoginMessage("MichaelC75");
+
+	OutputStream oos = socket.getOutputStream();
+	MessageFactory.getLoginMessage("MichaelC");
+
+	// wanted to send a message, and I REALLY wanted to log in and
+	// officially connect, but I could not figure out how. I'm pretty upset.
+	// Could you show me how to do it later on?
+
 	BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	PrintWriter pw = new PrintWriter(os, true);
+	PrintWriter pw = new PrintWriter(oos, true);
 
 	System.out.println("server: " + br.readLine());
 	pw.println("137.190.250.174");

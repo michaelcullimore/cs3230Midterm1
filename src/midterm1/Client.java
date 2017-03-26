@@ -23,11 +23,6 @@ public class Client implements Runnable {
 	OutputStream oos = socket.getOutputStream();
 	MessageFactory.getLoginMessage("MichaelC");
 
-	// wanted to send a message, and I REALLY wanted to log in and
-	// officially connect, but I could not figure out how. I'm pretty upset.
-	// Could you show me how to do it later on? I wanted to ask you how, but
-	// I knew that we were taking a test, so.........
-
 	BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	PrintWriter pw = new PrintWriter(oos, true);
 
@@ -69,6 +64,6 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
-
+	//
     }
 }

@@ -27,7 +27,7 @@ public class Client implements Runnable {
 
 	// *****Will you show me how this was done?
 
-	oos.writeObject(username);
+	// ******oos.writeObject(username);
 	// oos.close();
 
 	BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));

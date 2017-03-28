@@ -25,8 +25,10 @@ public class Client implements Runnable {
 	OutputStream oos = socket.getOutputStream();
 	MessageFactory.getLoginMessage(username);
 
+	// *****Will you show me how this was done?
+
 	oos.writeObject(username);
-	oos.close();
+	// oos.close();
 
 	BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	PrintWriter pw = new PrintWriter(oos, true);
@@ -69,6 +71,5 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
-	//
     }
 }

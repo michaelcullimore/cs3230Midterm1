@@ -19,7 +19,7 @@ public class Server {
 	int server_Port = 8989;
 
 	try {
-	    InetAddress IPAddress = InetAddress.getByName("137.190.250.174");
+	    InetAddress IPAddress = InetAddress.getByName("52.35.72.251");
 	    server_IP = IPAddress.getHostAddress();
 	    System.out.println("Server IP address : " + server_IP);
 	} catch (UnknownHostException e) {

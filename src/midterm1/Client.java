@@ -14,20 +14,25 @@ import blackjack.message.MessageFactory;
 
 public class Client implements Runnable {
 
-    protected static String server_IP = "137.190.250.174";
+    protected static String server_IP = "52.35.72.251";
     protected static String client_IP;
 
     private static int initialize(Socket socket) throws IOException {
 	System.out.println("hello");
+	String username;
+	username = "MichaelC";
 
 	OutputStream oos = socket.getOutputStream();
-	MessageFactory.getLoginMessage("MichaelC");
+	MessageFactory.getLoginMessage(username);
+
+	oos.writeObject(username);
+	oos.close();
 
 	BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	PrintWriter pw = new PrintWriter(oos, true);
 
 	System.out.println("server: " + br.readLine());
-	pw.println("137.190.250.174");
+	pw.println("52.35.72.251");
 
 	socket.close();
 	return 1;
@@ -46,7 +51,7 @@ public class Client implements Runnable {
 
 	try {
 	    System.out.println("hello1");
-	    Socket socket = new Socket("137.190.250.174", 8989);
+	    Socket socket = new Socket("52.35.72.251", 8989);
 	    System.out.println("hello3");
 	    init = initialize(socket);
 

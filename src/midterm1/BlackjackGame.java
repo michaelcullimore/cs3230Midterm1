@@ -1,8 +1,13 @@
+//Michael Cullimore
+//CS3230 - Marsh
+//Spring 2017
+
 package midterm1;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -12,6 +17,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -19,7 +27,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+
+import blackjack.message.MessageFactory;
 
 public class BlackjackGame extends JFrame implements WindowListener, MouseListener, KeyListener {
     /**
@@ -28,29 +38,32 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
     private static final long serialVersionUID = 6;
 
     public static void main(String[] args) throws IOException {
-	new BlackjackGame();
+	// new BlackjackGame();
     }
 
     private JPanel contentPanel = new JPanel();
     private JTextArea message_area = null;
-    private JTextField send_area = null;
-    String name;
-    String username = null;
+    private JTextArea send_area = null;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
+    private Socket socket01;
 
-    public BlackjackGame() throws IOException {
+    public BlackjackGame(Socket socket, ObjectOutputStream oos, ObjectInputStream ois)
+	    throws HeadlessException, IOException {
+	socket01 = socket;
+	out = oos;
+	in = ois;
 
-	JPanel panel = new JPanel();
-	panel.setLayout(new FlowLayout(BoxLayout.Y_AXIS));
+	JPanel contentPanel = new JPanel();
+	contentPanel.setLayout(new FlowLayout(BoxLayout.Y_AXIS));
 
-	add(panel);
+	add(contentPanel);
 
 	this.addWindowListener(this);
-	this.setSize(800, 600);
+	this.setSize(new Dimension(800, 600));
 	this.setResizable(true);
 	this.setLayout(new BorderLayout());
 	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	contentPanel = new JPanel();
-	contentPanel.setLayout(new FlowLayout());
 
 	message_area = new JTextArea();
 	message_area.setEditable(false);
@@ -59,12 +72,29 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
 	JScrollPane scroll = new JScrollPane(message_area, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 		JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 	scroll.setSize(400, 100);
+	contentPanel.add(scroll, "Center");
+
+	JPanel inPanel = new JPanel();
+	inPanel.setLayout(new FlowLayout());
+
+	send_area = new JTextArea(3, 46);
+	send_area.setEditable(true);
+	send_area.setWrapStyleWord(true);
+	send_area.setLineWrap(true);
+	JScrollPane scroll01 = new JScrollPane(send_area);
+	scroll01.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+	inPanel.add(scroll01);
 
 	send_area.addKeyListener(new KeyListener() {
 	    @Override
 	    public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_ENTER && e.getModifiers() == KeyEvent.CTRL_MASK) {
-		    sendText();
+		    try {
+			sendText();
+		    } catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		    }
 		}
 	    }
 
@@ -78,7 +108,6 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
 	});
 
 	contentPanel.add(send_area);
-	contentPanel.setBackground(new Color(221, 221, 221));
 
 	JButton send = new JButton("Send");
 	send.addMouseListener(this);
@@ -98,18 +127,24 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
 	send.addActionListener(new ActionListener() {
 	    @Override
 	    public void actionPerformed(ActionEvent pE) {
-		sendText();
+		try {
+		    sendText();
+		} catch (IOException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
 	    }
 	});
 
-	this.add(contentPanel, "South");
-	this.setVisible(true);
-	send_area.requestFocus();
+	contentPanel.add(contentPanel, "South");
+	contentPanel.setVisible(true);
+	getContentPane().add(contentPanel);
+	send_area.requestFocusInWindow();
 
     }
 
     public void addText(String chat) {
-	message_area.append(chat);
+	message_area.append(chat + "\n");
 	message_area.setCaretPosition(message_area.getDocument().getLength());
 
     }
@@ -117,7 +152,12 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
     @Override
     public void keyPressed(KeyEvent e) {
 	if (e.getKeyCode() == KeyEvent.VK_ENTER && e.getModifiers() == KeyEvent.CTRL_MASK) {
-	    sendText();
+	    try {
+		sendText();
+	    } catch (IOException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	    }
 	}
     }
 
@@ -129,6 +169,20 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
     @Override
     public void keyTyped(KeyEvent arg0) {
 
+    }
+
+    public void logout() {
+	try {
+	    socket01.close();
+	    out.close();
+	    in.close();
+	    addText("You have successfully logged out.");
+	    send_area.setText("");
+	} catch (IOException e) {
+	    System.err.println("Socket was unable to be closed...");
+	    e.printStackTrace();
+	}
+	this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
     @Override
@@ -156,12 +210,40 @@ public class BlackjackGame extends JFrame implements WindowListener, MouseListen
 
     }
 
-    private void sendText() {
+    private void sendText() throws IOException {
 	String chatSend;
-	String username = "MichaelC";
+	// String username = "MCullimore75";
 	chatSend = send_area.getText();
-	message_area.append(username + ": " + chatSend + "\n\n");
+	switch (chatSend) {
+	case "HIT": {
+	    out.writeObject(MessageFactory.getHitMessage());
+	    out.flush();
+	    break;
+	}
+	case "JOIN": {
+	    out.writeObject(MessageFactory.getJoinMessage());
+	    out.flush();
+	    break;
+	}
+	case "START": {
+	    out.writeObject(MessageFactory.getStartMessage());
+	    out.flush();
+	    break;
+	}
+	case "STAY": {
+	    out.writeObject(MessageFactory.getStayMessage());
+	    out.flush();
+	    break;
+	}
+	case "quit": {
+	    logout();
+	    return;
+	}
+	}
+	// message_area.append(username + ": " + chatSend + "\n\n");
 	send_area.setText("");
+	out.writeObject(MessageFactory.getChatMessage(chatSend));
+	out.flush();
     }
 
     @Override
